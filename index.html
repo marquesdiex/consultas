@@ -15,6 +15,9 @@
             font-family: Arial, sans-serif;
             background: #f0f2f5;
             padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 60px; /* Espaço para o rodapé */
         }
 
         .container {
@@ -449,9 +452,39 @@
             line-height: 1.6;
         }
 
+        /* Marca d'água / Rodapé */
+        .watermark {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #7f8c8d;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+            z-index: 999;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .watermark span {
+            opacity: 0.8;
+        }
+
+        .watermark strong {
+            color: #3498db;
+            font-weight: normal;
+        }
+
         @media (max-width: 768px) {
             .calendar-section {
                 grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding-bottom: 80px;
             }
         }
     </style>
@@ -569,6 +602,11 @@
                 <button onclick="marcarTodasComoPendente()" style="background: #6c757d;">Marcar Todas como Pendente</button>
             </div>
         </div>
+    </div>
+
+    <!-- Marca d'água / Rodapé -->
+    <div class="watermark">
+        <span>Feito e mantido por <strong>Diex Marques Corrêa</strong> - Caráter Educativo</span>
     </div>
 
     <script>
