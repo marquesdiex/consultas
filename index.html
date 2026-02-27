@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Consultas - Posto de Saúde</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .warning-btn {
+            background: #e67e22;
+        }
+
+        .warning-btn:hover {
+            background: #d35400;
+        }
+
+        .calendar-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .calendar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h3 {
+            color: #2c3e50;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .calendar-day-header {
+            font-weight: bold;
+            color: #34495e;
+            padding: 10px;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-day:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .calendar-day.empty {
+            background: #f5f5f5;
+            cursor: default;
+        }
+
+        .calendar-day.past {
+            background: #ecf0f1;
+            color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.weekend {
+            background: #f8f9fa;
+            color: #e74c3c;
+        }
+
+        .time-slots {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .time-slots h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .time-slot.available {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .time-slot.available:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .time-slot.booked {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .time-slot.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+        }
+
+        .consultas-list {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .presenca-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .presenca-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .presenca-btn.compareceu {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .presenca-btn.compareceu:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .presenca-btn.compareceu.active {
+            background: #28a745;
+            color: white;
+        }
+
+        .presenca-btn.justificou {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .presenca-btn.justificou:hover {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        .presenca-btn.justificou.active {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        .presenca-btn.nao-compareceu {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .presenca-btn.nao-compareceu:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .presenca-btn.nao-compareceu.active {
+            background: #dc3545;
+            color: white;
+        }
+
+        .presenca-status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .presenca-status.compareceu {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .presenca-status.justificou {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .presenca-status.nao-compareceu {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .presenca-status.pendente {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stats-item {
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .stats-item.compareceu {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stats-item.justificou {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stats-item.nao-compareceu {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .backup-section {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .selected-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+
+        .filtros-presenca {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-btn {
+            background: #e2e3e5;
+            color: #383d41;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .filtro-btn:hover {
+            background: #d6d8db;
+        }
+
+        .filtro-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .cpf-name-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Controle de Consultas - Posto de Saúde</h1>
+
+        <!-- Seção de Backup -->
+        <div class="backup-section">
+            <h3>📦 Sistema de Backup</h3>
+            <button class="backup-btn" onclick="fazerBackup()">💾 Fazer Backup</button>
+            <label for="restoreFile" class="file-label">📂 Restaurar Backup</label>
+            <input type="file" id="restoreFile" class="file-input" accept=".json" onchange="restaurarBackup(event)">
+            <button onclick="exportarCSV()">📊 Exportar para Excel</button>
+        </div>
+
+        <!-- Formulário Principal -->
+        <div class="form-container">
+            <h2>📝 Nova Consulta</h2>
+            <div class="form-group">
+                <label for="nome">Nome Completo:</label>
+                <input type="text" id="nome" placeholder="Digite o nome do paciente">
+            </div>
+            <div class="form-group">
+                <label for="cpf">CPF:</label>
+                <input type="text" id="cpf" placeholder="Digite o CPF (opcional, mas recomendado)">
+            </div>
+            
+            <div class="calendar-section">
+                <!-- Calendário -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button onclick="mesAnterior()">←</button>
+                        <h3 id="mesAno">Março 2024</h3>
+                        <button onclick="proximoMes()">→</button>
+                    </div>
+                    <div class="calendar-grid" id="calendar">
+                        <!-- Dias da semana serão inseridos via JS -->
+                    </div>
+                </div>
+
+                <!-- Horários -->
+                <div class="time-slots">
+                    <h3>Horários Disponíveis</h3>
+                    <div id="selectedDateInfo" class="selected-info" style="display: none;">
+                        Data selecionada: <span id="dataSelecionada"></span>
+                    </div>
+                    <div class="slots-grid" id="timeSlots">
+                        <!-- Horários serão inseridos via JS -->
+                        <p>Selecione uma data no calendário</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button onclick="verificarDisponibilidade()" id="btnVerificar">Verificar Disponibilidade</button>
+                <button onclick="limparSelecao()" class="close-btn">Limpar Seleção</button>
+            </div>
+        </div>
+
+        <!-- Modal de Aviso de 15 Dias -->
+        <div id="warningModal" class="modal">
+            <div class="modal-content">
+                <h2 style="color: #e67e22;">⚠️ Atenção - Período de 15 Dias</h2>
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;" id="warningMessage"></div>
+                <div id="cpfNameInfo" class="cpf-name-info" style="display: none;">
+                    <!-- Informação do CPF será inserida aqui -->
+                </div>
+                <p><strong>Deseja marcar esta consulta mesmo assim?</strong></p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="close-btn" onclick="fecharModal()">Cancelar</button>
+                    <button class="warning-btn" onclick="confirmarConsultaEspecial()">Sim, marcar mesmo assim</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Consultas -->
+        <div class="consultas-list">
+            <h2>📋 Consultas Agendadas</h2>
+            
+            <!-- Filtros -->
+            <div class="filtros-presenca">
+                <button class="filtro-btn active" onclick="filtrarPresenca('todos')">Todos</button>
+                <button class="filtro-btn" onclick="filtrarPresenca('compareceu')">✅ Compareceram</button>
+                <button class="filtro-btn" onclick="filtrarPresenca('justificou')">🟡 Justificaram</button>
+                <button class="filtro-btn" onclick="filtrarPresenca('nao-compareceu')">❌ Não Compareceram</button>
+                <button class="filtro-btn" onclick="filtrarPresenca('pendente')">⏳ Pendentes</button>
+            </div>
+
+            <!-- Estatísticas -->
+            <div id="stats" class="stats"></div>
+
+            <!-- Tabela -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Status Período</th>
+                            <th>Presença</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="clear-btn" onclick="limparConsultas()">Limpar Todas Consultas</button>
+                <button onclick="marcarTodasComoPendente()" style="background: #6c757d;">Marcar Todas como Pendente</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== VARIÁVEIS GLOBAIS ==========
+        let consultas = JSON.parse(localStorage.getItem('consultas')) || [];
+        let dataAtual = new Date();
+        let mesSelecionado = dataAtual.getMonth();
+        let anoSelecionado = dataAtual.getFullYear();
+        let dataSelecionada = null;
+        let horarioSelecionado = null;
+        let pacienteTemp = null;
+        let filtroAtual = 'todos';
+
+        // Inicializar presença para consultas antigas (se não existir)
+        consultas.forEach(c => {
+            if (!c.presenca) {
+                c.presenca = 'pendente';
+            }
+        });
+
+        // ========== FUNÇÕES DE CALENDÁRIO ==========
+        function renderizarCalendario() {
+            const primeiroDia = new Date(anoSelecionado, mesSelecionado, 1);
+            const ultimoDia = new Date(anoSelecionado, mesSelecionado + 1, 0);
+            const diasNoMes = ultimoDia.getDate();
+            const diaSemanaInicio = primeiroDia.getDay();
+            
+            // Ajustar para começar na segunda
+            let inicio = diaSemanaInicio === 0 ? 6 : diaSemanaInicio - 1;
+            
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            document.getElementById('mesAno').textContent = `${meses[mesSelecionado]} ${anoSelecionado}`;
+            
+            const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            let calendarHTML = '';
+            
+            diasSemana.forEach(dia => {
+                calendarHTML += `<div class="calendar-day-header">${dia}</div>`;
+            });
+            
+            for (let i = 0; i < inicio; i++) {
+                calendarHTML += `<div class="calendar-day empty"></div>`;
+            }
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            for (let dia = 1; dia <= diasNoMes; dia++) {
+                const dataCelula = new Date(anoSelecionado, mesSelecionado, dia);
+                const diaSemana = dataCelula.getDay();
+                const isFimDeSemana = diaSemana === 0 || diaSemana === 6;
+                const isPassado = dataCelula < hoje;
+                const isSelected = dataSelecionada && 
+                    dataSelecionada.getDate() === dia && 
+                    dataSelecionada.getMonth() === mesSelecionado && 
+                    dataSelecionada.getFullYear() === anoSelecionado;
+                
+                let classes = 'calendar-day';
+                if (isPassado) classes += ' past';
+                if (isFimDeSemana) classes += ' weekend';
+                if (isSelected) classes += ' selected';
+                
+                calendarHTML += `<div class="${classes}" onclick="selecionarData(${dia})">${dia}</div>`;
+            }
+            
+            document.getElementById('calendar').innerHTML = calendarHTML;
+        }
+
+        function mesAnterior() {
+            if (mesSelecionado === 0) {
+                mesSelecionado = 11;
+                anoSelecionado--;
+            } else {
+                mesSelecionado--;
+            }
+            renderizarCalendario();
+            document.getElementById('timeSlots').innerHTML = '<p>Selecione uma data no calendário</p>';
+            document.getElementById('selectedDateInfo').style.display = 'none';
+            dataSelecionada = null;
+        }
+
+        function proximoMes() {
+            if (mesSelecionado === 11) {
+                mesSelecionado = 0;
+                anoSelecionado++;
+            } else {
+                mesSelecionado++;
+            }
+            renderizarCalendario();
+            document.getElementById('timeSlots').innerHTML = '<p>Selecione uma data no calendário</p>';
+            document.getElementById('selectedDateInfo').style.display = 'none';
+            dataSelecionada = null;
+        }
+
+        function selecionarData(dia) {
+            const data = new Date(anoSelecionado, mesSelecionado, dia);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            if (data < hoje) {
+                alert('Não é possível selecionar datas passadas!');
+                return;
+            }
+            
+            dataSelecionada = data;
+            renderizarCalendario();
+            renderizarHorarios();
+            
+            document.getElementById('dataSelecionada').textContent = data.toLocaleDateString('pt-BR');
+            document.getElementById('selectedDateInfo').style.display = 'block';
+        }
+
+        // ========== FUNÇÕES DE HORÁRIOS ==========
+        function renderizarHorarios() {
+            if (!dataSelecionada) return;
+            
+            const slotsContainer = document.getElementById('timeSlots');
+            let slotsHTML = '';
+            
+            for (let hora = 7; hora <= 19; hora++) {
+                for (let minuto = 0; minuto < 60; minuto += 15) {
+                    if (hora === 19 && minuto > 0) continue;
+                    
+                    const horario = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+                    const dataHora = new Date(dataSelecionada);
+                    dataHora.setHours(hora, minuto, 0, 0);
+                    
+                    const ocupado = consultas.some(c => {
+                        const cData = new Date(c.dataHora);
+                        return cData.getTime() === dataHora.getTime();
+                    });
+                    
+                    const isSelected = horarioSelecionado === horario;
+                    
+                    let classe = 'time-slot';
+                    if (ocupado) {
+                        classe += ' booked';
+                    } else {
+                        classe += ' available';
+                    }
+                    if (isSelected) classe += ' selected';
+                    
+                    slotsHTML += `<div class="${classe}" onclick="${ocupado ? '' : `selecionarHorario('${horario}')`}">${horario}</div>`;
+                }
+            }
+            
+            slotsContainer.innerHTML = slotsHTML;
+        }
+
+        function selecionarHorario(horario) {
+            horarioSelecionado = horario;
+            renderizarHorarios();
+        }
+
+        function limparSelecao() {
+            dataSelecionada = null;
+            horarioSelecionado = null;
+            document.getElementById('selectedDateInfo').style.display = 'none';
+            renderizarCalendario();
+            document.getElementById('timeSlots').innerHTML = '<p>Selecione uma data no calendário</p>';
+        }
+
+        // ========== FUNÇÕES DE VERIFICAÇÃO ==========
+        function verificarDisponibilidade() {
+            const nome = document.getElementById('nome').value.trim();
+            const cpf = document.getElementById('cpf').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, digite o nome do paciente');
+                return;
+            }
+            
+            if (!dataSelecionada || !horarioSelecionado) {
+                alert('Por favor, selecione data e horário para a consulta');
+                return;
+            }
+            
+            const dataHoraConsulta = new Date(dataSelecionada);
+            const [hora, minuto] = horarioSelecionado.split(':');
+            dataHoraConsulta.setHours(parseInt(hora), parseInt(minuto), 0, 0);
+            
+            const ocupado = consultas.some(c => {
+                const cData = new Date(c.dataHora);
+                return cData.getTime() === dataHoraConsulta.getTime();
+            });
+            
+            if (ocupado) {
+                alert('Este horário já está ocupado! Selecione outro horário.');
+                return;
+            }
+            
+            const limite15Dias = new Date(dataHoraConsulta);
+            limite15Dias.setDate(limite15Dias.getDate() - 15);
+            
+            const cpfLimpo = limparCPF(cpf);
+            
+            const consultasRecentes = consultas.filter(consulta => {
+                if (cpfLimpo) {
+                    const cpfConsulta = limparCPF(consulta.cpf);
+                    if (cpfConsulta !== cpfLimpo) return false;
+                } else {
+                    if (consulta.nome.toLowerCase() !== nome.toLowerCase()) return false;
+                }
+                
+                const dataConsulta = new Date(consulta.dataHora);
+                return dataConsulta >= limite15Dias && dataConsulta < dataHoraConsulta;
+            });
+            
+            pacienteTemp = {
+                nome,
+                cpf: cpfLimpo,
+                dataHora: dataHoraConsulta,
+                horario: horarioSelecionado,
+                presenca: 'pendente'
+            };
+            
+            if (consultasRecentes.length > 0) {
+                const ultimaConsulta = consultasRecentes.sort((a, b) => 
+                    new Date(b.dataHora) - new Date(a.dataHora)
+                )[0];
+                
+                const dataUltima = new Date(ultimaConsulta.dataHora);
+                const diasDiferenca = Math.ceil((dataHoraConsulta - dataUltima) / (1000 * 60 * 60 * 24));
+                
+                let mensagem = '';
+                let cpfInfoHTML = '';
+                
+                if (cpfLimpo) {
+                    mensagem = `Paciente com CPF ${formatarCPF(cpf)} já consultou em ${dataUltima.toLocaleDateString('pt-BR')}.`;
+                    
+                    // Mostrar o nome associado ao CPF
+                    if (ultimaConsulta.nome !== nome) {
+                        cpfInfoHTML = `
+                            <strong>ℹ️ Informação importante:</strong><br>
+                            Este CPF está registrado no nome de: <strong>${ultimaConsulta.nome}</strong><br>
+                            <small style="color: #666;">(O nome digitado foi: ${nome})</small>
+                        `;
+                    } else {
+                        cpfInfoHTML = `
+                            <strong>ℹ️ Informação importante:</strong><br>
+                            CPF encontrado para o paciente: <strong>${ultimaConsulta.nome}</strong>
+                        `;
+                    }
+                } else {
+                    mensagem = `Paciente ${nome} já consultou em ${dataUltima.toLocaleDateString('pt-BR')}.`;
+                    if (ultimaConsulta.cpf !== '-') {
+                        cpfInfoHTML = `
+                            <strong>ℹ️ Informação importante:</strong><br>
+                            O CPF registrado para este paciente é: <strong>${formatarCPF(ultimaConsulta.cpf)}</strong><br>
+                            <small>Considere usar o CPF para evitar duplicidades.</small>
+                        `;
+                    }
+                }
+                
+                mensagem += `\nDiferença de ${diasDiferenca} dias entre as consultas.`;
+                mensagem += `\nPeríodo mínimo recomendado é de 15 dias.`;
+                
+                document.getElementById('warningMessage').innerHTML = mensagem.replace(/\n/g, '<br>');
+                
+                const cpfInfoElement = document.getElementById('cpfNameInfo');
+                if (cpfInfoHTML) {
+                    cpfInfoElement.innerHTML = cpfInfoHTML;
+                    cpfInfoElement.style.display = 'block';
+                } else {
+                    cpfInfoElement.style.display = 'none';
+                }
+                
+                document.getElementById('warningModal').style.display = 'block';
+            } else {
+                confirmarConsulta();
+            }
+        }
+
+        function confirmarConsulta() {
+            if (!pacienteTemp) return;
+            
+            const novaConsulta = {
+                nome: pacienteTemp.nome,
+                cpf: pacienteTemp.cpf || '-',
+                dataHora: pacienteTemp.dataHora.toISOString(),
+                horario: pacienteTemp.horario,
+                presenca: 'pendente'
+            };
+            
+            consultas.push(novaConsulta);
+            localStorage.setItem('consultas', JSON.stringify(consultas));
+            
+            atualizarTabela();
+            limparSelecao();
+            document.getElementById('nome').value = '';
+            document.getElementById('cpf').value = '';
+            
+            alert('✅ Consulta agendada com sucesso!');
+        }
+
+        function confirmarConsultaEspecial() {
+            document.getElementById('warningModal').style.display = 'none';
+            document.getElementById('cpfNameInfo').style.display = 'none';
+            confirmarConsulta();
+        }
+
+        // ========== FUNÇÕES DE PRESENÇA ==========
+        function marcarPresenca(index, status) {
+            consultas[index].presenca = status;
+            localStorage.setItem('consultas', JSON.stringify(consultas));
+            atualizarTabela();
+            
+            const statusMsg = {
+                'compareceu': 'Compareceu',
+                'justificou': 'Justificou',
+                'nao-compareceu': 'Não Compareceu'
+            };
+            alert(`✅ Presença marcada: ${statusMsg[status]}`);
+        }
+
+        function marcarTodasComoPendente() {
+            if (confirm('Tem certeza que deseja marcar TODAS as consultas como pendente?')) {
+                consultas.forEach(c => c.presenca = 'pendente');
+                localStorage.setItem('consultas', JSON.stringify(consultas));
+                atualizarTabela();
+            }
+        }
+
+        function filtrarPresenca(filtro) {
+            filtroAtual = filtro;
+            
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            atualizarTabela();
+        }
+
+        // ========== FUNÇÕES AUXILIARES ==========
+        function formatarCPF(cpf) {
+            if (!cpf || cpf === '-') return '-';
+            cpf = cpf.replace(/\D/g, '');
+            if (cpf.length === 11) {
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
+            return cpf;
+        }
+
+        function limparCPF(cpf) {
+            if (!cpf) return '';
+            return cpf.replace(/\D/g, '');
+        }
+
+        function atualizarTabela() {
+            const tbody = document.getElementById('corpoTabela');
+            tbody.innerHTML = '';
+            
+            let consultasFiltradas = consultas;
+            if (filtroAtual !== 'todos') {
+                consultasFiltradas = consultas.filter(c => c.presenca === filtroAtual);
+            }
+            
+            const consultasOrdenadas = [...consultasFiltradas].sort((a, b) => 
+                new Date(b.dataHora) - new Date(a.dataHora)
+            );
+            
+            const agora = new Date();
+            
+            consultasOrdenadas.forEach((consulta, index) => {
+                const indexOriginal = consultas.findIndex(c => 
+                    c.dataHora === consulta.dataHora && c.nome === consulta.nome
+                );
+                
+                const tr = document.createElement('tr');
+                const dataHora = new Date(consulta.dataHora);
+                const dataFim = new Date(dataHora);
+                dataFim.setDate(dataFim.getDate() + 15);
+                
+                const statusPeriodo = agora <= dataFim ? 
+                    '<span class="status-ok">✅ Vigente</span>' : 
+                    '<span class="status-warning">⚠️ Expirado</span>';
+                
+                const presencaClass = {
+                    'compareceu': 'compareceu',
+                    'justificou': 'justificou',
+                    'nao-compareceu': 'nao-compareceu',
+                    'pendente': 'pendente'
+                }[consulta.presenca] || 'pendente';
+                
+                const presencaText = {
+                    'compareceu': '✅ Compareceu',
+                    'justificou': '🟡 Justificou',
+                    'nao-compareceu': '❌ Não Compareceu',
+                    'pendente': '⏳ Pendente'
+                }[consulta.presenca] || '⏳ Pendente';
+                
+                tr.innerHTML = `
+                    <td>${dataHora.toLocaleDateString('pt-BR')}</td>
+                    <td>${consulta.horario}</td>
+                    <td>${consulta.nome}</td>
+                    <td>${formatarCPF(consulta.cpf)}</td>
+                    <td>${statusPeriodo}</td>
+                    <td>
+                        <span class="presenca-status ${presencaClass}">${presencaText}</span>
+                    </td>
+                    <td>
+                        <div class="presenca-buttons">
+                            <button class="presenca-btn compareceu ${consulta.presenca === 'compareceu' ? 'active' : ''}" 
+                                    onclick="marcarPresenca(${indexOriginal}, 'compareceu')">✅ C</button>
+                            <button class="presenca-btn justificou ${consulta.presenca === 'justificou' ? 'active' : ''}" 
+                                    onclick="marcarPresenca(${indexOriginal}, 'justificou')">🟡 J</button>
+                            <button class="presenca-btn nao-compareceu ${consulta.presenca === 'nao-compareceu' ? 'active' : ''}" 
+                                    onclick="marcarPresenca(${indexOriginal}, 'nao-compareceu')">❌ NC</button>
+                            <button onclick="cancelarConsulta(${indexOriginal})" style="background: #e74c3c; padding: 5px 10px; margin-left: 5px;">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            atualizarStats();
+        }
+
+        function cancelarConsulta(index) {
+            if (confirm('Tem certeza que deseja cancelar esta consulta?')) {
+                consultas.splice(index, 1);
+                localStorage.setItem('consultas', JSON.stringify(consultas));
+                atualizarTabela();
+                renderizarHorarios();
+            }
+        }
+
+        function atualizarStats() {
+            const total = consultas.length;
+            const compareceram = consultas.filter(c => c.presenca === 'compareceu').length;
+            const justificaram = consultas.filter(c => c.presenca === 'justificou').length;
+            const naoCompareceram = consultas.filter(c => c.presenca === 'nao-compareceu').length;
+            const pendentes = consultas.filter(c => c.presenca === 'pendente').length;
+            
+            const statsHTML = `
+                <span class="stats-item">📊 Total: ${total}</span>
+                <span class="stats-item compareceu">✅ Compareceram: ${compareceram}</span>
+                <span class="stats-item justificou">🟡 Justificaram: ${justificaram}</span>
+                <span class="stats-item nao-compareceu">❌ Não Compareceram: ${naoCompareceram}</span>
+                <span class="stats-item pendente">⏳ Pendentes: ${pendentes}</span>
+            `;
+            
+            document.getElementById('stats').innerHTML = statsHTML;
+        }
+
+        function fecharModal() {
+            document.getElementById('warningModal').style.display = 'none';
+            document.getElementById('cpfNameInfo').style.display = 'none';
+            pacienteTemp = null;
+        }
+
+        // ========== FUNÇÕES DE BACKUP ==========
+        function fazerBackup() {
+            if (consultas.length === 0) {
+                alert('Não há consultas para fazer backup!');
+                return;
+            }
+
+            const dadosBackup = {
+                dataBackup: new Date().toISOString(),
+                totalConsultas: consultas.length,
+                consultas: consultas,
+                versao: '3.0'
+            };
+
+            const jsonString = JSON.stringify(dadosBackup, null, 2);
+            
+            const data = new Date();
+            const dataStr = data.toLocaleDateString('pt-BR').replace(/\//g, '-');
+            const horaStr = data.toLocaleTimeString('pt-BR').replace(/:/g, '-');
+            
+            const nomeArquivo = `backup_consultas_${dataStr}_${horaStr}.json`;
+
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nomeArquivo;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            alert(`✅ Backup realizado com sucesso!\nArquivo salvo na pasta Downloads`);
+        }
+
+        function restaurarBackup(event) {
+            const file = event.target.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    
+                    if (!dados.consultas || !Array.isArray(dados.consultas)) {
+                        alert('❌ Arquivo de backup inválido!');
+                        return;
+                    }
+                    
+                    dados.consultas.forEach(c => {
+                        if (!c.presenca) c.presenca = 'pendente';
+                    });
+                    
+                    if (confirm(`Deseja restaurar ${dados.totalConsultas} consultas?\nOs dados atuais serão substituídos.`)) {
+                        consultas = dados.consultas;
+                        localStorage.setItem('consultas', JSON.stringify(consultas));
+                        atualizarTabela();
+                        alert('✅ Backup restaurado com sucesso!');
+                    }
+                    
+                } catch (error) {
+                    alert('❌ Erro ao ler arquivo de backup!');
+                }
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function exportarCSV() {
+            if (consultas.length === 0) {
+                alert('Não há consultas para exportar!');
+                return;
+            }
+
+            let csv = 'Data,Horário,Nome,CPF,Status Período,Presença\n';
+            
+            const agora = new Date();
+            consultas.forEach(c => {
+                const dataHora = new Date(c.dataHora);
+                const dataFim = new Date(dataHora);
+                dataFim.setDate(dataFim.getDate() + 15);
+                const statusPeriodo = agora <= dataFim ? 'Vigente' : 'Expirado';
+                
+                const presencaText = {
+                    'compareceu': 'Compareceu',
+                    'justificou': 'Justificou',
+                    'nao-compareceu': 'Não Compareceu',
+                    'pendente': 'Pendente'
+                }[c.presenca] || 'Pendente';
+                
+                csv += `${dataHora.toLocaleDateString('pt-BR')},${c.horario},"${c.nome}",${formatarCPF(c.cpf)},${statusPeriodo},${presencaText}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const data = new Date();
+            const dataStr = data.toLocaleDateString('pt-BR').replace(/\//g, '-');
+            
+            link.href = url;
+            link.download = `consultas_${dataStr}.csv`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Arquivo CSV exportado!');
+        }
+
+        function limparConsultas() {
+            if (confirm('⚠️ Tem certeza? Faça um backup antes!')) {
+                consultas = [];
+                localStorage.removeItem('consultas');
+                atualizarTabela();
+                renderizarHorarios();
+            }
+        }
+
+        // Auto-formatação do CPF
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 9) {
+                e.target.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            } else if (value.length > 6) {
+                e.target.value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+            } else if (value.length > 3) {
+                e.target.value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+            } else {
+                e.target.value = value;
+            }
+        });
+
+        // Fecha modal se clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('warningModal');
+            if (event.target === modal) {
+                fecharModal();
+            }
+        }
+
+        // Inicialização
+        renderizarCalendario();
+        atualizarTabela();
+    </script>
+</body>
+</html>
